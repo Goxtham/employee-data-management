@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { updateEmployee } from "../api/employeeApi";
@@ -17,13 +17,20 @@ interface Props {
 }
 
 const EditEmployeeModal: React.FC<Props> = ({ employee, onClose, onUpdate }) => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   // Validation rules
   const validationSchema = Yup.object({
     name: Yup.string()
       .min(2, "Name must be at least 2 characters")
       .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
       .required("Name is required"),
-    email: Yup.string().email("Invalid email format").required("Email is required"),
+    email: Yup.string()
+      .matches(
+        /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+        "Invalid email format"
+      )
+      .required("Email is required"),
     position: Yup.string()
       .min(2, "Position must be at least 2 characters")
       .required("Position is required"),
@@ -42,13 +49,14 @@ const EditEmployeeModal: React.FC<Props> = ({ employee, onClose, onUpdate }) => 
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting }) => {
+            setErrorMessage(null); // clear old errors
             try {
               await updateEmployee(employee.id, values);
               onUpdate(); // refresh list
               onClose();  // close modal
-            } catch (err) {
+            } catch (err: any) {
               console.error("Failed to update employee:", err);
-              alert("Error updating employee");
+              setErrorMessage(err.message); // show "Email already exists" or backend error
             } finally {
               setSubmitting(false);
             }
@@ -97,6 +105,11 @@ const EditEmployeeModal: React.FC<Props> = ({ employee, onClose, onUpdate }) => 
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
+
+              {/* Show API error message */}
+              {errorMessage && (
+                <div className="text-red-600 mb-3 text-sm">{errorMessage}</div>
+              )}
 
               <div className="flex justify-end gap-2">
                 <button

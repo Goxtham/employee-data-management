@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { createEmployee } from "../api/employeeApi";
 
 const AddEmployee: React.FC<{ onEmployeeAdded: () => void }> = ({ onEmployeeAdded }) => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   // Validation Schema
   const validationSchema = Yup.object({
     name: Yup.string()
@@ -11,7 +13,10 @@ const AddEmployee: React.FC<{ onEmployeeAdded: () => void }> = ({ onEmployeeAdde
       .matches(/^[A-Za-z\s]+$/, "Only letters and spaces are allowed")
       .required("Name is required"),
     email: Yup.string()
-      .email("Invalid email format")
+      .matches(
+        /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+        "Invalid email format"
+      )
       .required("Email is required"),
     position: Yup.string()
       .min(2, "Position must be at least 2 characters")
@@ -26,13 +31,14 @@ const AddEmployee: React.FC<{ onEmployeeAdded: () => void }> = ({ onEmployeeAdde
         initialValues={{ name: "", email: "", position: "" }}
         validationSchema={validationSchema}
         onSubmit={async (values, { resetForm }) => {
+          setErrorMessage(null); // clear old error
           try {
             await createEmployee(values);
             onEmployeeAdded(); // refresh the list
             resetForm();
-          } catch (err) {
+          } catch (err: any) {
             console.error("Error adding employee:", err);
-            alert("Failed to add employee");
+            setErrorMessage(err.message); // show backend error (e.g., "Email already exists")
           }
         }}
       >
@@ -79,6 +85,11 @@ const AddEmployee: React.FC<{ onEmployeeAdded: () => void }> = ({ onEmployeeAdde
                 className="text-red-500 text-sm mt-1"
               />
             </div>
+
+            {/* Show API error messages */}
+            {errorMessage && (
+              <div className="text-red-600 mb-3 text-sm">{errorMessage}</div>
+            )}
 
             <button
               type="submit"

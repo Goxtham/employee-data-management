@@ -31,12 +31,11 @@ router.post("/", async (req: Request, res: Response) => {
     const employee = await db.get("SELECT * FROM employees WHERE id = ?", result.lastID);
     res.status(201).json(employee);
   } catch (err: any) {
-    if (err.message.includes("UNIQUE constraint")) {
-      res.status(400).json({ error: "Email already exists" });
-    } else {
-      console.error(err);
-      res.status(500).json({ error: "Failed to create employee" });
+    if (err.code === "SQLITE_CONSTRAINT" || err.message.includes("UNIQUE constraint")) {
+      return res.status(400).json({ error: "Email already exists" });
     }
+    console.error(err);
+    res.status(500).json({ error: "Failed to create employee" });
   }
 });
 
@@ -60,12 +59,11 @@ router.put("/:id", async (req: Request, res: Response) => {
     const employee = await db.get("SELECT * FROM employees WHERE id = ?", id);
     res.json(employee);
   } catch (err: any) {
-    if (err.message.includes("UNIQUE constraint")) {
-      res.status(400).json({ error: "Email already exists" });
-    } else {
-      console.error(err);
-      res.status(500).json({ error: "Failed to update employee" });
+    if (err.code === "SQLITE_CONSTRAINT" || err.message.includes("UNIQUE constraint")) {
+      return res.status(400).json({ error: "Email already exists" });
     }
+    console.error(err);
+    res.status(500).json({ error: "Failed to update employee" });
   }
 });
 

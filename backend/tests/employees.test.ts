@@ -5,10 +5,10 @@ import path from "path";
 import app from "../src/index";
 import { openDb } from "../src/db/connection";
 
-// Use a separate test DB
+// separate test DB
 const TEST_DB = path.resolve(__dirname, "../../data/employees.test.db");
 
-// Helper: reset the test DB before each test
+// reset the test DB before each test
 beforeEach(async () => {
   if (fs.existsSync(TEST_DB)) {
     fs.unlinkSync(TEST_DB);
