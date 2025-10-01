@@ -19,12 +19,12 @@ app.use("/api/employees", employeesRouter);
 
 app.get("/", (_req, res) => res.json({ message: "Employee API root" }));
 
-// ✅ Start server only if not in test mode
+//  Start server only if not in test mode
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(` Server running on http://localhost:${PORT}`);
   });
 }
 
-// ✅ Export app for Jest/Supertest
+//  Export app for Jest/Supertest
 export default app;
